@@ -1,44 +1,30 @@
-name: Test
+name: Python tests with Allure
 
-on:
-  push:
-    branches:
-      - "main"
+on: [push, pull_request]
+
 jobs:
   test:
-    name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.x
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-      - name: Install dependencies
-        run: |
-          pytest --alluredir=allure-results
+    - uses: actions/checkout@v4  # Обновите до v4
 
-      - name: Get Allure history
-        uses: actions/checkout@v2
-        if: always()
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages
-      - name: Allure Report action from marketplace
-        uses: simple-elf/allure-report-action@master
-        if: always()
-        with:
-          allure_results: allure-results
-          allure_history: allure-history
-          keep_reports: 20
-      - name: Deploy report to Github Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v2
-        env:
-          PERSONAL_TOKEN: ${{ secrets.CI_TOKEN }}
-          PUBLISH_BRANCH: gh-pages
-          PUBLISH_DIR: allure-history
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install allure-pytest
+
+    - name: Run tests
+      run: |
+        pytest --alluredir=./allure-results
+
+    - name: Generate Allure report
+      uses: simple-elf/allure-report-action@v1  # Правильное название
+      if: always()
+      with:
+        allure_results: ./allure-results
+        keep_history: true
